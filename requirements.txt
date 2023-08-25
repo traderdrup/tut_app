@@ -3,7 +3,7 @@ pandas
 numpy
 streamlit
 datetime
-quantstats
+quantstats==0.0.59 
 PyPortfolioOpt
 IPython
 scikit-learn
