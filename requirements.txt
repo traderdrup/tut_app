@@ -1,9 +1,8 @@
 yfinance==0.1.74
-pandas
-numpy
+pandas==1.5.2
+numpy==1.23.5
 streamlit
-datetime
 quantstats==0.0.59 
-PyPortfolioOpt
+PyPortfolioOpt==1.5.4
 IPython
 scikit-learn
