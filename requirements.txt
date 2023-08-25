@@ -6,3 +6,4 @@ datetime
 quantstats
 PyPortfolioOpt
 IPython
+scikit-learn
