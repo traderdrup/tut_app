@@ -29,6 +29,11 @@ def generate_maxsharpe_portfolio(portfolio, gamma_sharpe):
     Sigma = CovarianceShrinkage(portfolio).ledoit_wolf()
     ef = EfficientFrontier(mu, Sigma)
     ef.add_objective(objective_functions.L2_reg, gamma=gamma_sharpe)
+    n_assets = len(mu)  # number of assets
+    min_weight = 0.10
+    for i in range(n_assets):
+        ef.add_constraint(lambda w, i=i: w[i] >= min_weight)  # Enforce that weight of asset i is at least min_weight
+    
     weights = ef.max_sharpe()
     clean_weights = ef.clean_weights()
     return clean_weights
@@ -43,19 +48,31 @@ def generate_tearsheet(returns, benchmark, rf, title):
 
 def get_tickers_from_csv(filename):
     # Read the CSV file into a DataFrame
-    df = pd.read_csv(filename, delimiter=';')
+    df = pd.read_csv(filename, delimiter=';').sort_values("name")
     # Combine 'Name' and 'Ticker' columns, and return as a list
     return (df['name'] + ' (' + df['yfinance_ticker'] + ')').tolist()
 
 combined_tickers = get_tickers_from_csv('assets.csv')
+
+def get_start_date(period_option):
+    end_date = datetime.datetime.now() - datetime.timedelta(days=1)  # Yesterday's date
+    if period_option == "1 year":
+        start_date = end_date - datetime.timedelta(days=365)
+    elif period_option == "3 years":
+        start_date = end_date - datetime.timedelta(days=365*3)
+    elif period_option == "5 years":
+        start_date = end_date - datetime.timedelta(days=365*5)
+    return start_date, end_date
 
 def main():
     st.title("Portfolio Optimization with qiip")
 
     # User Input
     selected_combined_tickers = st.multiselect("Select Tickers", combined_tickers)
-    start = st.date_input("Start Date", datetime.datetime(2020, 2, 5))
-    end = st.date_input("End Date", datetime.datetime(2023, 4, 6))
+    period_option = st.selectbox("Select time period:", ["1 year", "3 years", "5 years"])
+    start, end = get_start_date(period_option)
+    st.write(f"Selected period: {start.strftime('%Y-%m-%d')} to {end.strftime('%Y-%m-%d')}")
+    
 
     if len(selected_combined_tickers) >= 2:
         selected_tickers = [item.split('(')[1].replace(')', '') for item in selected_combined_tickers]
